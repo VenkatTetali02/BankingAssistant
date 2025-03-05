@@ -1,0 +1,27 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+main1.py
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# IDE/Editor Files
+.vscode/
+
+# Configuration and Log Files
+.env
+.coverage
+*.log
+*.bak
+
+# Build and Distribution
+build/
+dist/
+
+# Other
+*.db

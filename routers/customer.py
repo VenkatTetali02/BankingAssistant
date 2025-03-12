@@ -11,40 +11,42 @@ router=APIRouter(prefix="/customers",tags=['Customer'])
 
 @router.post("/",status_code=status.HTTP_201_CREATED)
 def create_customer(request:schemas.CustomerRequest,db:Session=Depends(get_db)):
-    cust_repository=CustomerRepository()
-    new_customer=cust_repository.create_customer(request.Name,request.Passcode)
-    return new_customer
+    cust_repository=CustomerRepository(db)
+    ret_status,message=cust_repository.create_customer(request.Name,request.Passcode)
+    if ret_status:
+        return message
+    raise HTTPException(status.HTTP_400_BAD_REQUEST,message)
 
 @router.get("/",response_model=List[schemas.CustomerResponse])
 def get_customers(db:Session=Depends(get_db)):
-    customers=db.query(models.Customer).all()
+    cust_repository=CustomerRepository(db)
+    customers=cust_repository.get_customers()
     return customers
 
 @router.get("/{cust_id}",status_code=status.HTTP_200_OK,response_model=schemas.CustomerResponse,tags=["Customer"])
 def get_customer(cust_id:int,response: Response,db:Session=Depends(get_db)):
-    customer=db.query(models.Customer).filter(models.Customer.id==cust_id).first()
-    if not customer:
-        raise HTTPException(status.HTTP_404_NOT_FOUND,f"No Customer with ID {cust_id}")
-        #response.status_code=status.HTTP_404_NOT_FOUND
-        #return {"data":"No Customer with that ID exists"}
-    return customer
+    cust_repository=CustomerRepository(db)
+    ret_status,message=cust_repository.get_customer(cust_id)
 
-@router.delete("/{cust_id}",status_code=status.HTTP_200_OK)
-def delete_customer(cust_id:int,db:Session=Depends(get_db)):
-     db.query(models.Customer).filter(models.Customer.id==cust_id).delete(synchronize_session=False)
-     db.commit()
-     return {"data":f"ID {cust_id} deleted"}
+    if ret_status:
+        return message
+    
+    raise HTTPException(status.HTTP_404_NOT_FOUND,message)
 
 @router.put("/{cust_id}",status_code=status.HTTP_202_ACCEPTED)
 def update_customer(cust_id,request:schemas.CustomerRequest,db:Session=Depends(get_db)):
-     customer=db.query(models.Customer).filter(models.Customer.id==cust_id)
-     if not customer.first():
-         raise HTTPException(status.HTTP_404_NOT_FOUND,f"Customer with ID {cust_id} not found")
+     cust_repository=CustomerRepository(db)
+     ret_status,message=cust_repository.update_customer(cust_id,request.Name,request.Passcode)
+     if ret_status:
+         return {"data":message}
      else:
-         customer.update({"Name":request.Name,"Pin":request.Pin})
-         db.commit()
-         return "Customer Updated"
-         #customer.Name=request.Name
-         #customer.Pin=request.Pin
-         #db.refresh(customer)
-         # eturn {"data":f"Updated CustID {cust_id}"}
+        raise HTTPException(status.HTTP_404_NOT_FOUND,message)
+
+@router.delete("/{cust_id}",status_code=status.HTTP_200_OK)
+def delete_customer(cust_id:int,db:Session=Depends(get_db)):
+     cust_repository=CustomerRepository(db)
+     ret_status,message=cust_repository.delete_customer(cust_id)
+     if ret_status:
+        return {"data":message}
+     
+     raise HTTPException(status.HTTP_404_NOT_FOUND,message)

@@ -14,7 +14,11 @@ class CustomerAccountRequest(BaseModel):
 class CustomerAccountUpdateRequest(BaseModel):
     AccountType:str
     Balance:float
-    AccountNum:int
+
+class CustomerTransactionRequest(BaseModel):
+     AccountNum: int
+     Amount: float
+     Description: str
 
 
 # Schemas used in the middle to avoid repetetion

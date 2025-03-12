@@ -1,16 +1,18 @@
 from fastapi import FastAPI
 from db import models
 from db.database import engine
-from routers import customer,bot, customer_accounts
+from routers import customer,bot, customer_accounts,customer_transactions
 from fastapi import APIRouter, status, Depends, HTTPException, Response, Request
 
 models.Base.metadata.create_all(bind=engine)
+#models.CustomerTransaction.__table__.drop(bind=engine)
 #models.Base.metadata.drop_all(bind=engine)
 
 app=FastAPI()
 app.include_router(customer.router)
 app.include_router(customer_accounts.router)
 app.include_router(bot.router)
+app.include_router(customer_transactions.router)
 
 @app.get("/")
 def homepage():
